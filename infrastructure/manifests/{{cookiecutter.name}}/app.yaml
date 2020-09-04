@@ -1,0 +1,28 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    component: {{cookiecutter.name}}
+  name: {{cookiecutter.name}}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: {{cookiecutter.name}}
+      run: 
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "true"
+      labels:
+        component: {{cookiecutter.name}}
+    spec:
+      containers:
+      - image: {{cookiecutter.docker_image}}
+        imagePullPolicy: Always
+        name: {{cookiecutter.name}}
+        ports:
+        - containerPort: {{cookiecutter.listening_port}}
+          name: {{cookiecutter.name}}
+          protocol: TCP

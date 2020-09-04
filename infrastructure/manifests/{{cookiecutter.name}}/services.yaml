@@ -1,0 +1,33 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{cookiecutter.name}}
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: {{cookiecutter.listening_port}}
+  selector:
+    component: {{cookiecutter.name}}
+  type: ClusterIP
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{cookiecutter.name}}
+  namespace: {{cookiecutter.k8s_namespace}}
+spec:
+  gateways:
+  - istio-ingress-internal.shared
+  hosts:
+    ## The value for cluster was origionaly tools, not entirely sure yet if this templating of the dns scheme will work, need to check with the other clusters/names. I used stage here because its the lowest common denominator, all of the clusters have a staging environment. I would have used edge but there is no edge for dataproc.
+  - {{cookiecutter.name}}.stage.europe-west4.{{cookiecutter.cluster}}.trv.cloud
+  - match:
+      - authority:
+          prefix: "{{cookiecutter.name}}" # Make sure you only listen to your service, not others
+    route:
+      - destination:
+          host: "{{cookiecutter.name}}.{{cookiecutter.k8s_namespace}}.svc.cluster.local" # can be different from the prefix
+          port:
+            number: 8080          
